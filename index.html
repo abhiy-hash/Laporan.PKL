@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan PKL</title>
+    <style>
+        /* ========== RESET & BASE ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 40px;
+            gap: 24px;
+        }
+
+        /* ========== WADAH ATAS: NAVIGASI + COUNTDOWN ========== */
+        .top-bar {
+            width: 100%;
+            max-width: 1200px;
+            background: #0f0f1a;
+            border: 1px solid #1a1a2e;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            box-shadow:
+                0 4px 24px rgba(0, 0, 0, 0.5),
+                0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* Garis putih neon di bagian bawah */
+        .top-bar::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+        }
+
+        /* Tombol Hamburger */
+        .hamburger {
+            background: #0f0f1a;
+            border: 2px solid #f97316;
+            color: #f97316;
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1001;
+            letter-spacing: 1px;
+        }
+
+        .hamburger:hover {
+            background: #f97316;
+            color: #0a0a0a;
+            box-shadow: 0 0 24px rgba(249, 115, 22, 0.6);
+        }
+
+        /* Panel Menu Dropdown */
+        .nav-menu {
+            position: absolute;
+            top: 80px;
+            left: 28px;
+            background: #0f0f1a;
+            border: 2px solid #f97316;
+            border-radius: 14px;
+            padding: 8px 0;
+            min-width: 260px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.25s ease;
+            z-index: 1000;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .nav-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 14px 24px;
+            color: #c0c0c0;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(249, 115, 22, 0.08);
+            color: #f97316;
+            border-left: 3px solid #f97316;
+        }
+
+        /* Countdown */
+        .countdown-wrapper {
+            text-align: right;
+        }
+
+        .countdown-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #f97316;
+            margin-bottom: 6px;
+        }
+
+        .countdown-display {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .countdown-display span {
+            color: #f97316;
+        }
+
+        /* ========== WADAH KALENDER ========== */
+        .calendar-container {
+            width: 100%;
+            max-width: 1200px;
+            background: #0d0d18;
+            border: 1.5px solid #3b82f6;
+            border-radius: 18px;
+            padding: 28px 32px 24px;
+            box-shadow:
+                0 0 24px rgba(59, 130, 246, 0.15),
+                0 8px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Watermark Tahun */
+        .year-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 200px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.06);
+            pointer-events: none;
+            z-index: 0;
+            letter-spacing: 24px;
+            white-space: nowrap;
+            text-shadow: 0 0 60px rgba(255, 255, 255, 0.04);
+        }
+
+        /* Baris Atas: Bulan + Jam */
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .month-display {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f97316;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .time-wrapper {
+            border: 2px solid #f97316;
+            border-radius: 12px;
+            padding: 10px 28px;
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .time-display {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .time-display .separator {
+            color: #f97316;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        /* Grid Kalender */
+        .calendar-grid-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .day-headers {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #f97316;
+            letter-spacing: 1px;
+            padding: 6px 0;
+        }
+
+        .date-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .date-cell {
+            text-align: center;
+            padding: 12px 6px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #e8e8e8;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+        }
+
+        .date-cell.today {
+            color: #ffffff;
+            font-weight: 800;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            margin: 0 auto;
+            border: 2px solid #f97316;
+            background: #0a0a0a;
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
+        }
+
+        .date-cell.empty {
+            color: transparent;
+            pointer-events: none;
+        }
+
+        /* ========== CARD TARGET HIDUP ========== */
+        .target-card {
+            width: 100%;
+            max-width: 1200px;
+            background: #0f0f1a;
+            border: 1.5px solid #f97316;
+            border-radius: 16px;
+            padding: 28px 36px;
+            box-shadow:
+                0 4px 24px rgba(249, 115, 22, 0.12),
+                0 0 40px rgba(249, 115, 22, 0.05);
+            position: relative;
+        }
+
+        /* Garis aksen di atas card */
+        .target-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 30px;
+            right: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #f97316, transparent);
+        }
+
+        .target-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #f97316;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+
+        .target-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .target-list li {
+            font-size: 22px;
+            color: #ffffff;
+            padding-left: 0;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .target-list li::before {
+            content: '>';
+            color: #f97316;
+            margin-right: 16px;
+            letter-spacing: 0;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        /* ========== CARD GAMBAR ========== */
+        .image-card {
+            width: 100%;
+            max-width: 1200px;
+            background: #0f0f1a;
+            border: 1px solid #3b82f6;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .image-card img {
+            max-width: 100%;
+            max-height: 320px;
+            border-radius: 10px;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .image-card img:hover {
+            border-color: #f97316;
+            box-shadow: 0 0 28px rgba(249, 115, 22, 0.3);
+            transform: scale(1.01);
+        }
+
+        /* ========== TOMBOL SPREADSHEET ========== */
+        .spreadsheet-btn {
+            width: 100%;
+            max-width: 1200px;
+            background: #f97316;
+            color: #0a0a0a;
+            text-align: center;
+            padding: 16px 0;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.25);
+            display: block;
+        }
+
+        .spreadsheet-btn:hover {
+            background: #fb923c;
+            box-shadow: 0 0 36px rgba(249, 115, 22, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px 16px;
+                gap: 16px;
+            }
+
+            .calendar-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .time-wrapper {
+                position: static;
+                transform: none;
+                align-self: center;
+            }
+
+            .time-display {
+                font-size: 22px;
+            }
+
+            .countdown-display {
+                font-size: 20px;
+            }
+
+            .year-watermark {
+                font-size: 120px;
+            }
+
+            .date-cell {
+                font-size: 16px;
+                padding: 10px 4px;
+                min-height: 36px;
+            }
+
+            .date-cell.today {
+                width: 38px;
+                height: 38px;
+            }
+
+            .target-list li {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== WADAH ATAS ==================== -->
+    <div class="top-bar">
+        <!-- Navigasi -->
+        <div class="nav-container">
+            <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">|||</button>
+            <nav class="nav-menu" id="navMenu">
+                <a href="https://forms.gle/vV9eZ5htRm6KYSfh6" target="_blank">Catatan Aktivitas</a>
+                <a href="https://forms.gle/2TGDFq6GFW5UWGJ77" target="_blank">Laporan Harian</a>
+                <a href="https://forms.gle/7JPxNqHCJCJEWmns7" target="_blank">Keuangan</a>
+            </nav>
+        </div>
+
+        <!-- Countdown -->
+        <div class="countdown-wrapper">
+            <div class="countdown-label">Sisa Masa PKL</div>
+            <div class="countdown-display" id="countdownDisplay"></div>
+        </div>
+    </div>
+
+    <!-- ==================== WADAH KALENDER ==================== -->
+    <div class="calendar-container">
+        <!-- Watermark Tahun -->
+        <div class="year-watermark" id="yearWatermark"></div>
+
+        <!-- Header: Bulan + Jam -->
+        <div class="calendar-header">
+            <div class="month-display" id="monthDisplay"></div>
+            <div class="time-wrapper">
+                <div class="time-display" id="timeDisplay"></div>
+            </div>
+        </div>
+
+        <!-- Grid Kalender -->
+        <div class="calendar-grid-wrapper">
+            <div class="day-headers" id="dayHeaders"></div>
+            <div class="date-grid" id="dateGrid"></div>
+        </div>
+    </div>
+
+    <!-- ==================== TARGET HIDUP ==================== -->
+    <div class="target-card">
+        <div class="target-title">Target Hidup</div>
+        <ul class="target-list" id="targetList"></ul>
+    </div>
+
+    <!-- ==================== GAMBAR ==================== -->
+    <div class="image-card">
+        <img id="dashboardImage" src="" alt="Motivasi" />
+    </div>
+
+    <!-- ==================== TOMBOL SPREADSHEET ==================== -->
+    <a class="spreadsheet-btn" id="spreadsheetLink" href="#" target="_blank">
+        Buka Spreadsheet
+    </a>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // =====================================================
+        // KONFIGURASI - GANTI BAGIAN INI SESUAI KEBUTUHAN
+        // =====================================================
+
+        // Link Google Form
+        const LINK_FORM_CATATAN = 'https://forms.gle/vV9eZ5htRm6KYSfh6';
+        const LINK_FORM_LAPORAN = 'https://forms.gle/2TGDFq6GFW5UWGJ77';
+        const LINK_FORM_KEUANGAN = 'https://forms.gle/7JPxNqHCJCJEWmns7';
+        const LINK_SPREADSHEET = 'https://docs.google.com/spreadsheets/d/16eVB-rkbD9pYdhDyNt7GBJxYInIHg1ii9OnDMfRn5eE/edit?usp=drivesdk';
+
+        // Tanggal selesai PKL (format: YYYY-MM-DD HH:MM:SS)
+        const TANGGAL_SELESAI_PKL = '2027-2-31 17:00:00';
+
+        // Target hidup (bisa 2-3 target)
+        const TARGET_HIDUP = [
+            'Beli cincin',
+            'Nabung 100ribu per bulan',
+            'Aniversari pertama',
+            'Beli laptop sepulang PKL'
+        ];
+
+        // URL Gambar
+        const GAMBAR_URL = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800';
+
+        // =====================================================
+        // INISIALISASI KONFIGURASI
+        // =====================================================
+
+        // Update link navigasi
+        document.querySelectorAll('.nav-menu a')[0].href = LINK_FORM_CATATAN;
+        document.querySelectorAll('.nav-menu a')[1].href = LINK_FORM_LAPORAN;
+        document.querySelectorAll('.nav-menu a')[2].href = LINK_FORM_KEUANGAN;
+        document.getElementById('spreadsheetLink').href = LINK_SPREADSHEET;
+
+        // Update target hidup
+        const targetListEl = document.getElementById('targetList');
+        TARGET_HIDUP.forEach(target => {
+            const li = document.createElement('li');
+            li.textContent = target;
+            targetListEl.appendChild(li);
+        });
+
+        // Update gambar
+        document.getElementById('dashboardImage').src = GAMBAR_URL;
+
+        // =====================================================
+        // TOGGLE MENU NAVIGASI
+        // =====================================================
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('active');
+        }
+
+        document.addEventListener('click', function(event) {
+            const navContainer = document.querySelector('.nav-container');
+            const menu = document.getElementById('navMenu');
+            if (!navContainer.contains(event.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
+
+        // =====================================================
+        // COUNTDOWN MUNDUR
+        // =====================================================
+        function updateCountdown() {
+            const targetDate = new Date(TANGGAL_SELESAI_PKL).getTime();
+            const now = new Date().getTime();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('countdownDisplay').innerHTML = '<span>PKL SELESAI!</span>';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('countdownDisplay').innerHTML =
+                days + ' Hari ' +
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        }
+
+        // =====================================================
+        // JAM DIGITAL
+        // =====================================================
+        function updateClock() {
+            const now = new Date();
+            const jam = String(now.getHours()).padStart(2, '0');
+            const menit = String(now.getMinutes()).padStart(2, '0');
+            const detik = String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById('timeDisplay').innerHTML =
+                jam + '<span class="separator">:</span>' +
+                menit + '<span class="separator">:</span>' +
+                detik;
+        }
+
+        // =====================================================
+        // KALENDER
+        // =====================================================
+        const namaBulan = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+
+        const namaHari = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+        function renderCalendar() {
+            const now = new Date();
+            const bulan = now.getMonth();
+            const tahun = now.getFullYear();
+            const today = now.getDate();
+
+            // Update bulan & watermark tahun
+            document.getElementById('monthDisplay').textContent = namaBulan[bulan];
+            document.getElementById('yearWatermark').textContent = tahun;
+
+            // Header hari - 7 kolom saja
+            const headersHTML = namaHari
+                .map(h => `<div class="day-header">${h}</div>`)
+                .join('');
+            document.getElementById('dayHeaders').innerHTML = headersHTML;
+
+            // Generate tanggal
+            const firstDay = new Date(tahun, bulan, 1).getDay();
+            const daysInMonth = new Date(tahun, bulan + 1, 0).getDate();
+
+            let html = '';
+            // Cell kosong sebelum tanggal 1
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="date-cell empty"></div>';
+            }
+            // Tanggal 1 sampai akhir bulan
+            for (let d = 1; d <= daysInMonth; d++) {
+                if (d === today) {
+                    html += `<div class="date-cell today">${d}</div>`;
+                } else {
+                    html += `<div class="date-cell">${d}</div>`;
+                }
+            }
+            document.getElementById('dateGrid').innerHTML = html;
+        }
+
+        // =====================================================
+        // JALANKAN SEMUA
+        // =====================================================
+        updateCountdown();
+        updateClock();
+        renderCalendar();
+
+        setInterval(updateCountdown, 1000);
+        setInterval(updateClock, 1000);
+    </script>
+
+</body>
+</html>
